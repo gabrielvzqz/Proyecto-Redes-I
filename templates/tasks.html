@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>{{ title }}</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📝 Mis Tareas</h1>
+        <p>Hola, <strong>{{ usuario }}</strong> |
+            <a href="{{ url_for('logout') }}">[Cerrar sesión]</a>
+        </p>
+
+        <hr>
+
+        <!-- Formulario para añadir tarea -->
+        <h2>Añadir nueva tarea</h2>
+        <form method="POST" action="{{ url_for('add_task') }}">
+            <input type="text" name="task_text" placeholder="Escribe tu tarea..." required style="width: 70%;">
+            <input type="submit" value="➕ Añadir">
+        </form>
+
+        <hr>
+
+        <!-- Lista de tareas -->
+        <h2>Mis tareas pendientes</h2>
+        {% if tareas %}
+        <ul style="list-style: none; padding: 0;">
+            {% for tarea in tareas %}
+            <li
+                style="padding: 10px; margin: 5px 0; background: #f9f9f9; border-left: 5px solid {% if tarea.completada %}#5cb85c{% else %}#f0ad4e{% endif %};">
+                <span style="{% if tarea.completada %}text-decoration: line-through; color: #888;{% endif %}">
+                    {{ tarea.texto }}
+                </span>
+                <small style="float: right;">
+                    <a href="{{ url_for('toggle_task', task_id=tarea.id) }}">
+                        {% if tarea.completada %}↩️ Reabrir{% else %}✅ Completar{% endif %}
+                    </a> |
+                    <a href="{{ url_for('delete_task', task_id=tarea.id) }}" style="color: #d9534f;">🗑️ Borrar</a>
+                </small>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No tienes tareas. ¡Añade una!</p>
+        {% endif %}
+
+        <hr>
+        <p><a href="{{ url_for('index') }}">← Volver al inicio</a></p>
+    </div>
+</body>
+
+</html>
