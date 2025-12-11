@@ -5,8 +5,12 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     # Render usa PostgreSQL
     result = urlparse(DATABASE_URL)
-    SQLALCHEMY_DATABASE_URI = f"postgresql://{result.username}:{result.password}@{result.hostname}:{result.port}{result.path}"
-    print("Usando PostgreSQL de Render")
+    
+    # Si no hay puerto, usar el por defecto de PostgreSQL (5432)
+    port = result.port if result.port else 5432
+    
+    SQLALCHEMY_DATABASE_URI = f"postgresql://{result.username}:{result.password}@{result.hostname}:{port}{result.path}"
+    print(f"Usando PostgreSQL de Render en puerto {port}")
 else:
 
     # Configuración para AlwaysData
