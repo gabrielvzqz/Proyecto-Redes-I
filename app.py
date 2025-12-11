@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 import config
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = config.SECRET_KEY
@@ -114,22 +115,12 @@ def about():
 # ---------- INICIALIZAR BD ----------
 with app.app_context():
     db.create_all()
-    print("Tablas creadas/verificadas")
-    
-    # Crear usuario por defecto si no existe
-    if not Usuario.query.first():
-        usuario_admin = Usuario(
-            username='admin',
-            password='1234'
-        )
+    # Crear usuario admin si no existe (para Render)
+    if not Usuario.query.filter_by(username='admin').first():
+        usuario_admin = Usuario(username='admin', password='1234')
         db.session.add(usuario_admin)
         db.session.commit()
-        print("Usuario admin creado")
-
-# CAMBIA ESTO:
+        print("Usuario admin creado automáticamente")
 if __name__ == '__main__':
-    app.run(debug=True)
-
-# POR ESTO:
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))  # Render usa PORT=10000
+    app.run(host='0.0.0.0', port=port, debug=False)  # debug=False en producción
