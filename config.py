@@ -1,5 +1,5 @@
 import os
-# PARA RENDER (PostgreSQL)
+from urllib.parse import urlparse# PARA RENDER (PostgreSQL)
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
