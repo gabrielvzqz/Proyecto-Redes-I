@@ -29,7 +29,13 @@ class Tarea(db.Model):
 def index():
     if 'user_id' in session:
         usuario = Usuario.query.get(session['user_id'])
-        return render_template('index.html', usuario=usuario.username, title="Inicio")
+        # VERIFICAR si usuario existe antes de usar .username
+        if usuario:
+            return render_template('index.html', usuario=usuario.username, title="Inicio")
+        else:
+            # Si el usuario no existe en BD, limpiar sesión
+            session.pop('user_id', None)
+            return render_template('index.html', usuario=None, title="Login")
     return render_template('index.html', usuario=None, title="Login")
 
 @app.route('/login', methods=['GET', 'POST'])
