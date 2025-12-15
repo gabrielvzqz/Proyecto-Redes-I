@@ -22,8 +22,13 @@
         <form method="POST" action="{{ url_for('login') }}">
             Usuario: <input type="text" name="username" required><br><br>
             Contraseña: <input type="password" name="password" required><br><br>
-            <input type="submit" value="Enviar">
+            <input type="submit" value="Iniciar sesión">
         </form>
+
+        <!-- Enlace a registro -->
+        <p><small>¿No tienes cuenta? <a href="{{ url_for('registro') }}">Regístrate aquí</a></small></p>
+        <p><small><strong>Requisitos contraseña:</strong> 8+ caracteres, mayúscula, número, carácter especial</small>
+        </p>
         {% endif %}
 
         <hr>

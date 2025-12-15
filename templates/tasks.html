@@ -25,9 +25,40 @@
         </form>
 
         <hr>
+        <hr>
+        <h2>🔍 Buscar tareas</h2>
+        <input type="text" id="buscador" placeholder="Escribe para filtrar tareas..."
+            style="width: 80%; padding: 10px; font-size: 16px; margin-bottom: 20px;" onkeyup="filtrarTareas()">
 
-        <!-- Lista de tareas -->
-        <h2>Mis tareas pendientes</h2>
+        <script>
+            // Mecanismo inteligente: Búsqueda en tiempo real
+            function filtrarTareas() {
+                const buscar = document.getElementById('buscador').value.toLowerCase();
+                const tareas = document.querySelectorAll('li');
+                let encontradas = 0;
+
+                tareas.forEach(tarea => {
+                    const texto = tarea.textContent.toLowerCase();
+                    if (texto.includes(buscar)) {
+                        tarea.style.display = '';
+                        encontradas++;
+                    } else {
+                        tarea.style.display = 'none';
+                    }
+                });
+
+                // Mostrar contador (opcional)
+                const contador = document.getElementById('contador-tareas');
+                if (contador) {
+                    contador.textContent = `Mostrando ${encontradas} de ${tareas.length} tareas`;
+                }
+            }
+        </script>
+
+        <hr>
+
+        <!-- Lista de tareas (MODIFICA este título) -->
+        <h2>Mis tareas pendientes <small id="contador-tareas"></small></h2>
         {% if tareas %}
         <ul style="list-style: none; padding: 0;">
             {% for tarea in tareas %}
@@ -49,6 +80,16 @@
         <p>No tienes tareas. ¡Añade una!</p>
         {% endif %}
 
+        <script>
+            // Inicializar contador al cargar la página
+            document.addEventListener('DOMContentLoaded', function () {
+                const tareas = document.querySelectorAll('li');
+                const contador = document.getElementById('contador-tareas');
+                if (contador && tareas.length > 0) {
+                    contador.textContent = ` (${tareas.length} tareas)`;
+                }
+            });
+        </script>
         <hr>
         <p><a href="{{ url_for('index') }}">← Volver al inicio</a></p>
     </div>

@@ -2,6 +2,19 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 import config
 import os
+import re
+
+def validar_password(password):
+    """Mecanismo inteligente: Valida fortaleza de contraseña"""
+    if len(password) < 8:
+        return "❌ La contraseña debe tener al menos 8 caracteres"
+    if not re.search(r'[A-Z]', password):
+        return "❌ Debe contener al menos una mayúscula (A-Z)"
+    if not re.search(r'\d', password):
+        return "❌ Debe contener al menos un número (0-9)"
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>_]', password):
+        return "❌ Debe contener al menos un carácter especial (!@#$% etc.)"
+    return None
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = config.SECRET_KEY
@@ -44,13 +57,28 @@ def login():
         username = request.form['username']
         password = request.form['password']
         
+        # Mecanismo inteligente: Validar contraseña
+        error_password = validar_password(password)
+        if error_password:
+            return f"""
+            <h2>Error en contraseña</h2>
+            <p>{error_password}</p>
+            <p><a href="{url_for('index')}">← Volver a intentar</a></p>
+            <hr>
+            <small>Requisitos: 8+ caracteres, mayúscula, número, carácter especial</small>
+            """, 400
+        
         usuario = Usuario.query.filter_by(username=username, password=password).first()
         
         if usuario:
             session['user_id'] = usuario.id
             return redirect(url_for('tasks'))
         else:
-            return "Credenciales incorrectas", 401
+            return """
+            <h2>Credenciales incorrectas</h2>
+            <p>Usuario o contraseña no válidos.</p>
+            <p><a href="{}">← Volver a intentar</a></p>
+            """.format(url_for('index')), 401
     
     return redirect(url_for('index'))
 
@@ -118,6 +146,64 @@ def toggle_task(task_id):
 def about():
     return "<h1>Acerca de</h1><p>Esta es mi aplicación Flask para la práctica de Redes.</p>"
 
+@app.route('/registro', methods=['GET', 'POST'])
+def registro():
+    """Ruta para registro de nuevos usuarios"""
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        confirmar = request.form.get('confirmar_password', '')
+        
+        # Validaciones
+        if password != confirmar:
+            return "❌ Las contraseñas no coinciden. <a href='/registro'>Volver</a>", 400
+        
+        error_password = validar_password(password)
+        if error_password:
+            return f"""
+            <h2>Error en contraseña</h2>
+            <p>{error_password}</p>
+            <p><a href="/registro">← Volver a intentar</a></p>
+            """, 400
+        
+        # Verificar si usuario ya existe
+        if Usuario.query.filter_by(username=username).first():
+            return "❌ El usuario ya existe. <a href='/registro'>Volver</a>", 400
+        
+        # Crear nuevo usuario
+        nuevo_usuario = Usuario(username=username, password=password)
+        db.session.add(nuevo_usuario)
+        db.session.commit()
+        
+        # Auto-login
+        session['user_id'] = nuevo_usuario.id
+        return redirect(url_for('tasks'))
+    
+    # GET: Mostrar formulario de registro
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head><title>Registro</title></head>
+    <body>
+        <h1>📝 Registro de nuevo usuario</h1>
+        <form method="POST">
+            Usuario: <input type="text" name="username" required><br><br>
+            Contraseña: <input type="password" name="password" required><br><br>
+            Confirmar contraseña: <input type="password" name="confirmar_password" required><br><br>
+            <input type="submit" value="Registrarse">
+        </form>
+        <hr>
+        <p><strong>Requisitos contraseña:</strong></p>
+        <ul>
+            <li>Mínimo 8 caracteres</li>
+            <li>Al menos una mayúscula (A-Z)</li>
+            <li>Al menos un número (0-9)</li>
+            <li>Al menos un carácter especial (!@#$%^&* etc.)</li>
+        </ul>
+        <p><a href="/">← Volver al login</a></p>
+    </body>
+    </html>
+    """
 # ---------- INICIALIZAR BD ----------
 with app.app_context():
     db.create_all()
